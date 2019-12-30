@@ -1,5 +1,6 @@
 const express = require('express')
 const app = express()
+const cors = require('cors')
 const multer = require('multer')
 const multerS3 = require('multer-s3')
 const fs = require('fs');
@@ -7,7 +8,7 @@ const AWS = require('aws-sdk')
 const PORT = process.env.PORT || 3000
 
 app.use(express.json())
-
+app.use(cors())
 require('dotenv').config()
 
 const bucket = 'image-rekog-anhar' // the bucketname without s3://
@@ -25,7 +26,7 @@ const config = new AWS.Config({
 })
 
 app.get('/', (req, res) => {
-  return res.send("App is working!")
+  return res.json({"message": "App is working!"})
 })
 
 app.get( '/rekog', (req, res) => {
@@ -50,21 +51,25 @@ app.get( '/rekog', (req, res) => {
   // });
 })
 
-app.get('/upload', (req, res) => {
-  // const fileContent = fs.readFileSync('./2.jpg');
-  // const params = {
-  //   Bucket: 'image-rekog-anhar',
-  //   Key: '2.jpg',
-  //   Body: fileContent
-  // }
-
-  // s3.upload(params, (err, data) => {
-  //   if (err) {
-  //       throw err;
-  //   }
-  //   res.send(`File uploaded successfully. ${data.Location}`);
-  // });
+let upload = multer({
+  storage: multerS3({
+    s3: s3,
+    bucket: 'image-rekog-anhar',
+    metadata: function (req, file, cb) {
+      cb(null, {fieldName: file.fieldname});
+    },
+    key: function (req, file, cb) {
+      cb(null, `${Date.now().toString()}${file.originalname}`)
+    }
+  })
 })
+
+app.post('/upload', upload.single('image'), (req, res, next) => {
+  console.log("================");
+  console.log(req.headers);
+  res.status(200).json({src: req.file.location});
+})
+
 
 app.listen( 3000, () => {
   console.log(`Listening on port ${ PORT }`);
