@@ -12,8 +12,8 @@ app.use(cors())
 require('dotenv').config()
 
 const bucket = 'image-rekog-anhar' // the bucketname without s3://
-const photo  = 'beard.jpeg' // the name of file
 
+// for s3
 const s3 = new AWS.S3({
   accessKeyId: process.env.AWS_ACCESS_KEY,
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
@@ -24,33 +24,13 @@ const config = new AWS.Config({
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   region: process.env.AWS_REGION
 })
+const client = new AWS.Rekognition(config);
 
 app.get('/', (req, res) => {
   return res.json({"message": "App is working!"})
 })
 
-app.get( '/rekog', (req, res) => {
-  // const client = new AWS.Rekognition(config);
-  // const params = {
-  //   Image: {
-  //     S3Object: {
-  //       Bucket: bucket,
-  //       Name: photo
-  //     },
-  //   },
-  //   Attributes: ['ALL']
-  // }
-
-  // client.detectFaces(params, (err, response) => {
-  //   if (err) {
-  //     return res.send(err); // an error occurred
-  //   } else {
-  //     console.log(`Detected faces for: ${photo}`)
-  //     return res.send(response)
-  //   }
-  // });
-})
-
+// s3 upload
 let upload = multer({
   storage: multerS3({
     s3: s3,
@@ -65,9 +45,27 @@ let upload = multer({
 })
 
 app.post('/upload', upload.single('image'), (req, res, next) => {
-  console.log("================");
-  console.log(req.headers);
-  res.status(200).json({src: req.file.location});
+  const fileName = req.file.key
+
+  // for image rekognition face detection API
+  const params = {
+    Image: {
+      S3Object: {
+        Bucket: bucket,
+        Name: fileName
+      },
+    },
+    Attributes: ['ALL']
+  }
+  client.detectFaces(params, (err, response) => {
+    if (err) {
+      res.send(err); // an error occurred
+    } else {
+      console.log("here");
+      console.log(response);
+      res.status(200).json({src: req.file.location, stats: response})
+    }
+  });
 })
 
 
