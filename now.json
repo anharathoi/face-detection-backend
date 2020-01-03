@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "builds": [{ "src": "server.js", "use": "@now/node" }],
+  "routes": [{ "src": "/(.*)", "dest": "server.js" }],
+  "env": {
+    "AWS_REGION_CODE": "@aws_region_code",
+    "AWS_ACCESS": "@aws_access",
+    "AWS_SECRET": "@aws_secret"
+  }
+}
