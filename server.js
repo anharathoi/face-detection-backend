@@ -14,19 +14,20 @@ const bucket = 'image-rekog-anhar';
 
 // for s3
 const s3 = new AWS.S3({
-  accessKeyId: process.env.AWS_ACCESS_KEY,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  accessKeyId: process.env.AWS_ACCESS,
+  secretAccessKey: process.env.AWS_SECRET
 });
 
 const config = new AWS.Config({
-  accessKeyId: process.env.AWS_ACCESS_KEY,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  region: process.env.AWS_REGION,
+  accessKeyId: process.env.AWS_ACCESS,
+  secretAccessKey: process.env.AWS_SECRET,
+  region: process.env.AWS_REGION_CODE,
 });
 const client = new AWS.Rekognition(config);
 
 app.get('/', (req, res) => res.json({ message: 'App is working!' }));
 
+app.get('/testRoute', (req, res) => res.json({ message: 'App still works'}))
 // s3 upload
 const upload = multer({
   storage: multerS3({
